@@ -41,10 +41,14 @@ class SuperPlanet:
     self._captureTurn=0
     self._netOwner=owner
     self._timeline = [(0,0)]*101
-    self._timeline[0] = (0,owner)
+    self._timeline[0] = (num_ships,owner)
     for i in range(1,101) :
-        st = self._timeline[i-1][0] + growth_rate
-        self._timeline[i] = (st,owner)
+				if(owner!=0):
+						st = self._timeline[i-1][0] + growth_rate
+						self._timeline[i] = (st,owner)
+				else:
+						st = self._timeline[i-1][0]
+						self._timeline[i] = (st,owner)
 	
   def getOwner(self):
     return self._netOwner
@@ -90,26 +94,24 @@ class SuperPlanet:
       fleetss = pw.Fleets()
       sorted_fleets = sorted(fleetss, key=lambda tup: tup.TurnsRemaining())
       for f in sorted_fleets:
-          if(self._planet_id == f.DestinationPlanet() and f.TurnsRemaining()<100) :
-							#~ ff = open("lol",'a')
-							#~ ff.write(str(f.TurnsRemaning()))
+          if(self._planet_id == f.DestinationPlanet()) :
               if(f.Owner()==self._owner):
                   self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._owner)
                   self._netWorth = self._timeline[f.TurnsRemaining()][0]
                   self._captureTurn = f.TurnsRemaining()
                   for i in range(f.TurnsRemaining()+1,101):
-                      tmp = self._timeline[i-1] + self._growth_rate
+                      tmp = self._timeline[i-1][0] + self._growth_rate
                       self._timeline[i] = (tmp,self._owner)
               else:
                   if(self._timeline[f.TurnsRemaining()]<f.NumShips()):
                       self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
                       for i in range(f.TurnsRemaining()+1,101):
-                          tmp = self._timeline[i-1] + self._growth_rate
+                          tmp = self._timeline[i-1][0] + self._growth_rate
                           self._timeline[i] = (tmp,f._owner)
                   else:
                       self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]-f.NumShips(),self._owner)
                       for i in range(f.TurnsRemaining()+1,101):
-                          tmp = self._timeline[i-1] + self._growth_rate
+                          tmp = self._timeline[i-1][0] + self._growth_rate
                           self._timeline[i] = (tmp,self._owner)
                   self._netWorth = self._timeline[f.TurnsRemaining()][0]
                   self._captureTurn = f.TurnsRemaining()
@@ -138,28 +140,6 @@ class SuperPlanet:
   def getState(self,time):
 		return self._timeline[time]			  
 
-    
-def currentState(pw):
-	planets = pw.Planets()
-	Superplanets=list()
-	for p in planets:
-		Superplanets.append(SuperPlanet(p.PlanetID(),p.Owner(),p.NumShips(),p.GrowthRate(),p.X(),p.Y()))
-	fleetss = pw.Fleets()
-	for f in fleetss:
-		dest=f.DestinationPlanet()
-		for p in Superplanets:
-			if(p.PlanetID()==dest):
-				if(f.Owner()==p.getOwner()):
-					p.setNet(p.getNet()+f.NumShips())
-				else:
-					if(p.getNet()>=f.NumShips()):
-						p.setNet(p.getNet()-f.NumShips())
-					else:
-						p.setNet(-p.getNet()+f.NumShips())
-						p.setOwner(f.Owner())
-				if(f.TurnsRemaining()>p.getCapture()):
-					p.setCapture(f.TurnsRemaining())
-	return Superplanets
 	
 def supercurrentState(pw):
 	planets = pw.Planets()
@@ -173,7 +153,6 @@ def superConquerWhat(pw,source,superplanets):
 	conquerList=list()
 	#superplanets[0].updateState()
 	for p in superplanets:
-		p.updateState(pw)
 		if(p.PlanetID()!=source.PlanetID()):
 			dist=math.sqrt((p.X()-source.X())**2+(p.Y()-source.Y())**2)
 			timetoreach=int(dist)+1
@@ -186,43 +165,27 @@ def superConquerWhat(pw,source,superplanets):
 				conquerList.append((p.PlanetID(),netWp,timetoreach,p.GrowthRate()))
 	return conquerList
 
-def ConquerWhat(pw,source,superplanets):
-	conquerList=list()
-	for p in superplanets:
-		if(p.PlanetID()!=source.PlanetID()):
-			dist=math.sqrt((p.X()-source.X())**2+(p.Y()-source.Y())**2)
-			timetoreach=int(dist)+1
-			netWp=0
-			#If not expected to be the owner then we will do something. We have to improve currentState code to get a better approximation of things happening.
-			if(p.getOwner()!=source.Owner()):
-				if(p.Owner()==0): #If current owner is neutral, expected after sometime will be the networth
-					netWp=-2*p.getNet()
-				elif(p.Owner()==1): #If current is us then expected when we reach will be 
-					netWp=-1*p.getNet() + p.GrowthRate()*timetoreach
-				elif(p.Owner()==2): #If current is enemy then expected when we reach will be 
-					netWp=-1*p.getNet() - 1*p.GrowthRate()*timetoreach
-				if(netWp<0):
-					conquerList.append((p.PlanetID(),netWp,netWp/(0.1+p.GrowthRate()),timetoreach,p.GrowthRate()))
-			
-	return conquerList
+
 
 def DoTurn(pw):
   superplanets=supercurrentState(pw)
   my_planets = pw.MyPlanets()
   for p in superplanets:
-	if(p.Owner()==1):
-		CList=superConquerWhat(pw,p,superplanets)
-		sorted_by_second = sorted(CList, key=lambda tup: (tup[1]+2*tup[2]) / (tup[3]+0.1))
-		count = p.getNet()
-		allowed = p.NumShips()
-		for sd in sorted_by_second:
-			if(sd[1]/2+2>0):
-				if(count > sd[1]/2+2 and allowed > sd[1]/2+2):
-					pw.IssueOrder(p.PlanetID(), sd[0],sd[1]/2+2)
-					count = count - sd[1]/2-2
-					allowed = allowed - sd[1]/2-2
-				else:
-					break
+		p.updateState(pw)
+  for p in superplanets:
+		if(p.Owner()==1):
+			CList=superConquerWhat(pw,p,superplanets)
+			sorted_by_second = sorted(CList, key=lambda tup: (tup[1]+50*tup[2]) / (tup[3]+0.1))
+			count = p.getNet()
+			allowed = p.NumShips()
+			for sd in sorted_by_second:
+				if(sd[1]/2+2>0):
+					if(count > sd[1]/2+2 and allowed > sd[1]/2+2):
+						pw.IssueOrder(p.PlanetID(), sd[0],sd[1]/2+2)
+						count = count - sd[1]/2-2
+						allowed = allowed - sd[1]/2-2
+					else:
+						break
 		
 
 
