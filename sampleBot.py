@@ -32,7 +32,7 @@ class SuperPlanet:
     self._netWorth = num_ships
     self._captureTurn = 0
     self._netOwner=owner
-    self._timeline = {}
+    self._timeline = [0]*101
     self._timeline[0] = (0,owner)
     for i in range(1,101) :
         st = self._timeline[i-1] + self._growth_rate
