@@ -130,25 +130,40 @@ class SuperPlanet:
                   self._captureTurn = f.TurnsRemaining()
 	
   def simulateState(self,num,time):
-	  simtime = self._timeline
-	  currentval = simtime[time][0]
-	  if(self._owner==1):
-		  simtime[time] = (currentval+num,self._owner)
-		  for i in range(time+1,101):
-			  tmp = simtime[i-1] + self._growth_rate
-			  simtime[i] = (tmp,self._owner)
-	  else:
-		  if(num > currentval):
-			  simtime[time] = (num-currentval,1)
-			  for i in range(time+1,101):
-				  tmp = simtime[i-1] + self._growth_rate
-				  simtime[i] = (tmp,1)
-		  else:
-			  simtime[time] = (currentval-num,self._owner)
-			  for i in range(time+1,101):
-				  tmp = simtime[i-1] + self._growth_rate
-				  simtime[i] = (tmp,self._owner)
-	  return simtime
+			simtime = self._timeline[:]
+			growth = self._growth_rate
+			currentval = simtime[time][0]
+			ownernow = self._owner
+			if(ownernow == 1):
+					simtime[time]=(currentval+num,ownernow)
+					for i in range(time+1,101):
+							if(ownernow != 0):
+									tmp = simtime[i-1][0]+growth
+									simtime[i] = (tmp,ownernow)
+							else:
+									tmp = simtime[i-1][0]
+									simtime[i] = (tmp,ownernow)
+			else:
+					if(num > currentval):
+							simtime[time]=(num-currentval,1)
+							ownernow=1
+							for i in range(time+1,101):
+									if(ownernow != 0):
+											tmp = simtime[i-1][0]+growth
+											simtime[i] = (tmp,ownernow)
+									else:
+											tmp = simtime[i-1][0]
+											simtime[i] = (tmp,ownernow)
+					else:
+							simtime[time]=(currentval-num,ownernow)
+							for i in range(time+1,101):
+									if(ownernow != 0):
+											tmp = simtime[i-1][0]+growth
+											simtime[i] = (tmp,ownernow)
+									else:
+											tmp = simtime[i-1][0]
+											simtime[i] = (tmp,ownernow)
+			return simtime
 	  
   def getState(self,time):
 		return self._timeline[time]			  
@@ -164,7 +179,6 @@ def supercurrentState(pw):
 
 def superConquerWhat(pw,source,superplanets):
 	conquerList=list()
-	#superplanets[0].updateState()
 	for p in superplanets:
 		if(p.PlanetID()!=source.PlanetID()):
 			dist=math.sqrt((p.X()-source.X())**2+(p.Y()-source.Y())**2)
@@ -185,6 +199,7 @@ def DoTurn(pw):
   my_planets = pw.MyPlanets()
   for p in superplanets:
 		p.updateState(pw)
+		#s = p.simulateState(10,2)
   for p in superplanets:
 		if(p.Owner()==1):
 			CList=superConquerWhat(pw,p,superplanets)
