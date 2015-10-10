@@ -326,7 +326,7 @@ def bestStrategy(turns,Target,superplanets):
 #Total Growth rate, number of fleets , proximity of all planets
 #Only decision is to attack a planet or no
 gainTurns=25
-def gainvector(superplanets,closest3):
+def gainvector(superplanets):
 	mystrategy=list()
 	myplanet=superplanets[0]
 	maxx=-10000.0
@@ -335,19 +335,10 @@ def gainvector(superplanets,closest3):
 			#If i want to attack this planet in 25 turns get the best strategy
 			strategy=bestStrategy(gainTurns,getthisplanet,superplanets)
 			mystrategy.append((strategy,getthisplanet))
-	#~ sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
-	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]-gain2ndturn(tup[1],superplanets,closest3)))
+	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
 	return sortstrategy
 
-def gain2ndturn(p,superplanets,closest3):
-	gains=0.0
-	for planet in closest3[p.PlanetID()]:
-		gains-=danger(planet)[0]*5+danger(planet)[1]
-		if(p.GrowthRate()>planet.GrowthRate()):
-			g=planet.GrowthRate()*(20-(planet.NumShips()-p.NumShips())/(p.GrowthRate()-planet.GrowthRate()))
-			gains+=max(0,g)
-	return gains
-	
+
 def supercurrentState(pw):
 	planets = pw.Planets()
 	Superplanets=list()
@@ -360,14 +351,6 @@ def closest3List(superplanets):
 	for planet1 in superplanets:
 		sortedList=sorted(superplanets,key=lambda tup: distance(planet1,tup))
 		closeList[planet1.PlanetID()]=sortedList[1:4]
-	return closeList
-	
-def danger(planet1):
-	if(planet1.Owner()==2):
-		return (planet1.GrowthRate(),planet1.NumShips())
-	else:
-		return (0,0)
-		
 
 def DoTurn(pw):
 		#~ f.open("L",'a')
@@ -375,11 +358,11 @@ def DoTurn(pw):
 		
 		superplanets=supercurrentState(pw)
 		my_planets = pw.MyPlanets()
-		closest3=closest3List(superplanets)
+		
 		for p in superplanets:
 			p.updateState(pw)
 		logging.debug("OLDTURN")
-		gvv=gainvector(superplanets,closest3)
+		gvv=gainvector(superplanets)
 		#~ logging.debug(gvv)	
 		xxx=[0.0]*len(superplanets)
 		quitthis=False
