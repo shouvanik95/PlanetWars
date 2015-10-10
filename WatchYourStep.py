@@ -286,7 +286,7 @@ def DoTurn(pw):
 					rapelist.append((p,ll))
 					
 		#~ sortedRapeList = sorted(rapelist, key=lambda tup: (tup[1][2]+2*tup[1][1]+10*proximity(tup[0],superplanets))/((tup[1][3]+1)*(tup[0].GrowthRate()+0.01)))
-		sortedRapeList = sorted(p, key=lambda tup: (tup.+2*tup[1][1]+10*proximity(tup,superplanets))/(("")*(tup.GrowthRate()+0.01)))
+		sortedRapeList = sorted(p, key=lambda tup: (10*proximity(tup,superplanets))/((tup.GrowthRate()+0.01)))
 		i=0
 		for rapes in sortedRapeList:
 			if (i<1):
