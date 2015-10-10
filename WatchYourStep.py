@@ -235,25 +235,48 @@ def enemyproximity(pw,superplanets):
 
 
 def gainList(planetlist,planetweights,Target,turns,superplanets):
+	#~ logging.debug("XYZ")
 	gain=0
 	shipsSent=0
 	captured=False
 	captureTime=0
-	fleetsent=list()
-	for i in range(0,len(planetlist)):
-		fleetsent.append((int(planetlist[i].NumShips()*planetweights[i]),(timetoreach(planetlist[i],Target))))
-	Target.simulateState(fleetsent,turns)
+	hitin3=0
+	fleetsafter3=0
+	#~ fleetsent=list()
+	#~ for i in range(0,len(planetlist)):
+		#~ fleetsent.append((int(planetlist[i].NumShips()*planetweights[i]),(timetoreach(planetlist[i],Target))))
+	#~ Target.simulateState(fleetsent,turns)
 	for i in range(0,len(planetlist)):
 		shipsSent+=int(planetlist[i].NumShips()*planetweights[i])
+		if(captured==True):
+			fleetsafter3+=int(planetlist[i].NumShips()*planetweights[i])
 		simstate=planetlist[i].quicksimstate(int(planetlist[i].NumShips()*planetweights[i]),turns)
 		if(simstate!=-1):
 			gain-=planetlist[i].GrowthRate()*(turns-simstate)
 		if(shipsSent>Target.getState(timetoreach(planetlist[i],Target))[0] and captured==False):
+			#Captured
+			captureTime=timetoreach(planetlist[i],Target)
+			captured=True
+			if(captureTime+3<turns):
+				#R-G
+				if(Target.getState(captureTime+3)[1]==1 and Target.getState(turns)[1]==2):
+					hitin3=Target.getState(turns)[0]-(turns-captureTime-3)*Target.GrowthRate()+Target.getState(captureTime+3)[0]
+				#G-G
+				if(Target.getState(captureTime+3)[1]==2 and Target.getState(turns)[1]==2):
+					hitin3=Target.getState(turns)[0]-(turns-captureTime-3)*Target.GrowthRate()-Target.getState(captureTime+3)[0]
+				#N-G
+				if(Target.getState(captureTime+3)[1]==0 and Target.getState(turns)[1]==2):
+					hitin3=Target.getState(turns)[0]-(turns-captureTime-3)*Target.GrowthRate()+Target.getState(captureTime+3)[0]					
 			if(Target.getState(timetoreach(planetlist[i],Target))[1]==0):
 				gain-=Target.getState(timetoreach(planetlist[i],Target))[0]
-			gain+=(Target.GrowthRate()*(turns-timetoreach(planetlist[i],Target)))
-			captured=True
-			captureTime=timetoreach(planetlist[i],Target)
+			
+	#~ logging.debug(fleetsafter3)	
+	#~ logging.debug(hitin3)	
+	if(fleetsafter3>=hitin3 and captured==True):
+		#~ logging.debug("XXX")
+		gain+=(Target.GrowthRate()*(turns-captureTime))
+		#~ logging.debug(gain)
+			
 	return gain
 	#~ shipsSent=0
 	#~ i=0
@@ -306,24 +329,21 @@ def bestStrategy(turns,Target,superplanets):
 	for j in range(0,1):
 		for i in range(0,planetsize):
 			#Maximize the gain - l1norm(planetweights)
-			maxhere=-10000.0
 			tempweights=planetweights[:]
-			for x in range(0,10):
-				tempweights[i]=float(x)/10
+			for x in range(0,30):
+				tempweights[i]=float(x)/30
 				Gain=gainList(sortedplanetlist,tempweights,Target,turns,superplanets)
-				if(Gain>maxhere):
-					maxhere=Gain
+				if(Gain>maxx):
+					maxx=Gain
 					planetweights=tempweights[:]
-			if(maxx<maxhere):
-				maxx=maxhere	
-	logging.debug(maxx)
+	#~ logging.debug(maxx)
 	return (sortedplanetlist,planetweights,maxx)
 				
 	
 #In 25 turns I want max gain
 #Total Growth rate, number of fleets , proximity of all planets
 #Only decision is to attack a planet or no
-gainTurns=20
+gainTurns=25
 def gainvector(superplanets):
 	mystrategy=list()
 	myplanet=superplanets[0]
@@ -335,71 +355,6 @@ def gainvector(superplanets):
 			mystrategy.append((strategy,getthisplanet))
 	sortstrategy = sorted(mystrategy, key=lambda tup: -1*tup[0][2])
 	return sortstrategy
-
-def scaredplanets(superplanets):
-	plist=list()
-	for p in superplanets:
-		if(p.Owner()==1):
-			for i in range(1,101):
-				if(p.getState(i)[1]!=1):
-					plist.append(p,i)
-					break
-	return plist
-
-def computeRapeStats(pw,planetToRape,superplanets):
-	planetListDist=list()
-	for p in superplanets:
-		if(p.Owner()==1):
-			dist=math.sqrt((p.X()-planetToRape.X())**2+(p.Y()-planetToRape.Y())**2)
-			planetListDist.append((p,dist))
-	sortedDistList = sorted(planetListDist, key=lambda tup: tup[1])
-	finalList=list()
-	for planetanddist in sortedDistList:
-		x=planetToRape.getState(int(planetanddist[1])+1)
-		finalList.append((planetanddist[0],int(planetanddist[1])+1,x[0]))
-	#~ #Given the finalList we have to computer how much each planet will send and which planet will send and report after how much time we will capture a planet
-	#~ #We see if we can ever capture that planet using all our ships. If we cant just send nothing
-	shipsSent=0
-	canCapture=False
-	captureTime=0
-	for p in finalList:
-		shipsSent+=(p[0].NumShips()-1)/2
-		if(shipsSent>=(planetToRape.getState(p[1]))[0] or (planetToRape.getState(p[1]))[1]==1):
-			canCapture=True
-			captureTime=p[1]
-			shipsSent+=(planetToRape.getState(p[1]))[0]
-			shipsSent-=(p[0].NumShips()-1)/2
-			break
-	if(canCapture==False):
-		return list()
-	else:
-		if(planetToRape.getState(captureTime)[1])==1:
-			return list()
-		#For now the best 4 planets will send 10 each
-		actionList=list()
-		shipsSent=0
-		statevector=planetToRape.simulateState(0,0)
-		for p in finalList:
-				shipsSent+=max(0,(p[0].NumShips()-1)/2)
-				if(shipsSent>(planetToRape.getState(p[1]))[0]):
-					#Now send only how many needed
-					shipsSent-=max(0,(p[0].NumShips()-1)/2) #We sent these many before
-					needed=(planetToRape.getState(p[1]))[0]-shipsSent+1 #We need to send these many now
-					if(needed>0):
-						actionList.append((p[0],needed))
-						shipsSent+=needed	
-						temp=planetToRape.simulateState(shipsSent,p[1])
-						
-						for i in range(p[1],101):
-							statevector[i]=temp[i]			
-					break
-				actionList.append((p[0],max(0,(p[0].NumShips()-1)/2)))
-				temp=planetToRape.simulateState(shipsSent,p[1])
-
-				for i in range(p[1],101):
-					statevector[i]=temp[i]
-		
-		return (actionList,captureTime,shipsSent,planetToRape.getState(captureTime)[1],statevector)
 
 
 def supercurrentState(pw):
@@ -420,26 +375,37 @@ def DoTurn(pw):
 			p.updateState(pw)
 		logging.debug("OLDTURN")
 		gvv=gainvector(superplanets)
-		logging.debug(gvv)	
+		#~ logging.debug(gvv)	
 		xxx=[0.0]*len(superplanets)
 		quitthis=False
 		logging.debug("NEWTURN")
+		strategylim=0
 		for gv in gvv:
-			if(len(gv[0])!=0):
-				for i in range(0,len(my_planets)):
-					xxx[gv[0][0][i].PlanetID()]+=gv[0][1][i]
-					if(xxx[gv[0][0][i].PlanetID()]>1.0):
-						quitthis=True
-				if(gv[0][2]>0 and quitthis==False):
-					quitthis=True
-					planetsize=len(gv[0][0])
-					for i in range(0,planetsize):
-						a=gv[0][0][i].PlanetID()
-						b=gv[1].PlanetID()
-						c=int(gv[0][0][i].NumShips()*gv[0][1][i])
-						if(c!=0):
-							pw.IssueOrder(a,b,c)
-		
+			#~ logging.debug(gv)
+			strategylim+=1
+			if(strategylim<6):
+				quitthis=False
+				if(len(gv[0])!=0 and gv[0][2]>0):
+					#~ logging.debug("Selected")
+					#~ logging.debug(len(my_planets))
+					for i in range(0,len(gv[0][0])):
+						if(xxx[gv[0][0][i].PlanetID()]>0.001):
+							quitthis=True
+						xxx[gv[0][0][i].PlanetID()]+=gv[0][1][i]
+						#~ if(xxx[gv[0][0][i].PlanetID()]>1.0):
+							#~ quitthis=True
+					#~ logging.debug(xxx)
+					if(gv[0][2]>0 and quitthis==False):
+						
+						#~ logging.debug("StratSelected")
+						planetsize=len(gv[0][0])
+						for i in range(0,planetsize):
+							a=gv[0][0][i].PlanetID()
+							b=gv[1].PlanetID()
+							c=int(gv[0][0][i].NumShips()*gv[0][1][i])
+							if(c!=0):
+								pw.IssueOrder(a,b,c)
+		#~ logging.debug("ISSUED")
 
 
 
