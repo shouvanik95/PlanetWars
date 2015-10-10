@@ -52,6 +52,9 @@ class SuperPlanet:
 	
   def getOwner(self):
     return self._netOwner
+   
+  def getTimeline(self):
+    return self._timeline
     
   def setOwner(self,netOwner):
     self._netOwner=netOwner
@@ -91,43 +94,55 @@ class SuperPlanet:
     return self._y
 
   def updateState(self,pw):
-      fleetss = pw.Fleets()
-      sorted_fleets = sorted(fleetss, key=lambda tup: tup.TurnsRemaining())
-      for f in sorted_fleets:
-          if(self._planet_id == f.DestinationPlanet()) :
-              if(f.Owner()==self._netOwner):
-                  self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._netOwner)
-                  self._netWorth = self._timeline[f.TurnsRemaining()][0]
-                  self._captureTurn = f.TurnsRemaining()
-                  for i in range(f.TurnsRemaining()+1,101):
+			self._timeline[0] = (self._num_ships,self._owner)
+			for i in range(1,101) :
+					if(self._owner!=0):
+							st = self._timeline[i-1][0] + self._growth_rate
+							self._timeline[i] = (st,self._owner)
+					else:
+							st = self._timeline[i-1][0]
+							self._timeline[i] = (st,self._owner)
+									
+			fleetss = pw.Fleets()
+			sorted_fleets = sorted(fleetss, key=lambda tup: tup.TurnsRemaining())
+      
+      
+      
+			for f in sorted_fleets:
+					if(self._planet_id == f.DestinationPlanet()) :
+							if(f.Owner()==self._netOwner):
+									self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._netOwner)
+									self._netWorth = self._timeline[f.TurnsRemaining()][0]
+									self._captureTurn = f.TurnsRemaining()
+									for i in range(f.TurnsRemaining()+1,101):
 											if(self._netOwner != 0):
 													tmp = self._timeline[i-1][0] + self._growth_rate
 													self._timeline[i] = (tmp,self._netOwner)
 											else:
 													tmp = self._timeline[i-1][0]
 													self._timeline[i] = (tmp,self._netOwner)
-              else:
-                  if(self._timeline[f.TurnsRemaining()]<f.NumShips()):
-                      self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
-                      self._netOwner = f.Owner()
-                      for i in range(f.TurnsRemaining()+1,101):
+							else:
+									if(self._timeline[f.TurnsRemaining()][0]<f.NumShips()):
+											self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
+											self._netOwner = f.Owner()
+											for i in range(f.TurnsRemaining()+1,101):
 													if(self._netOwner != 0):
 															tmp = self._timeline[i-1][0] + self._growth_rate
 															self._timeline[i] = (tmp,self._netOwner)
 													else:
 															tmp = self._timeline[i-1][0]
 															self._timeline[i] = (tmp,self._netOwner)
-                  else:
-                      self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]-f.NumShips(),self._netOwner)
-                      for i in range(f.TurnsRemaining()+1,101):
+									else:
+											self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]-f.NumShips(),self._netOwner)
+											for i in range(f.TurnsRemaining()+1,101):
 													if(self._netOwner != 0):
 															tmp = self._timeline[i-1][0] + self._growth_rate
 															self._timeline[i] = (tmp,self._netOwner)
 													else:
 															tmp = self._timeline[i-1][0]
 															self._timeline[i] = (tmp,self._netOwner)
-                  self._netWorth = self._timeline[f.TurnsRemaining()][0]
-                  self._captureTurn = f.TurnsRemaining()
+									self._netWorth = self._timeline[f.TurnsRemaining()][0]
+									self._captureTurn = f.TurnsRemaining()
 	
   def simulateState(self,num,time):
 			simtime = self._timeline[:]
@@ -166,8 +181,10 @@ class SuperPlanet:
 			return simtime
 	  
   def getState(self,time):
-		return self._timeline[time]			  
-
+		return self._timeline[time]
+				  
+	
+  
 	
 def supercurrentState(pw):
 	planets = pw.Planets()
@@ -193,7 +210,13 @@ def superConquerWhat(pw,source,superplanets):
 	return conquerList
 
  
-
+def proximity(pw,superplanets):
+			dist=0.0
+			for p in superplanets:
+					if(p.Owner()==1):
+							dist+=math.sqrt((p.X()-pw.X())**2+(p.Y()-pw.Y())**2)
+			return dist
+			
 def computeRapeStats(pw,planetToRape,superplanets):
 	planetListDist=list()
 	for p in superplanets:
@@ -211,27 +234,43 @@ def computeRapeStats(pw,planetToRape,superplanets):
 	canCapture=False
 	captureTime=0
 	for p in finalList:
-		shipsSent+=p[0].NumShips()
-		if(shipsSent>=(planetToRape.getState(p[1]))[0]):
+		shipsSent+=p[0].NumShips()-1
+		if(shipsSent>=(planetToRape.getState(p[1]))[0] or (planetToRape.getState(p[1]))[1]==1):
 			canCapture=True
 			captureTime=p[1]
 			shipsSent+=(planetToRape.getState(p[1]))[0]
-			shipsSent-=p[0].NumShips()
+			shipsSent-=p[0].NumShips()+1
 			break
 	if(canCapture==False):
 		return list()
 	else:
+		if(planetToRape.getState(captureTime)[1])==1:
+			return list()
 		#For now the best 4 planets will send 10 each
 		actionList=list()
-		i=0
+		shipsSent=0
 		for p in finalList:
-				if(i<4):
-					i+=1
-					actionList.append((p[0],min(p[0].NumShips(),10)))
+				shipsSent+=p[0].NumShips()-1
+				if(shipsSent>(planetToRape.getState(p[1]))[0]):
+					#Now send only how many needed
 					
-		return (actionList,captureTime,shipsSent)
+					shipsSent-=p[0].NumShips()-1 #We sent these many before
+					needed=(planetToRape.getState(p[1]))[0]-shipsSent+1 #We need to send these many now
+					
+					if(needed>0):
+						actionList.append((p[0],needed))
+						shipsSent+=needed					
+					break
+				actionList.append((p[0],p[0].NumShips()-1))
+				
+		return (actionList,captureTime,shipsSent,planetToRape.getState(captureTime)[1])
 
 import sys
+import logging
+with open('example.log', 'w'):
+    pass
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
+
 def DoTurn(pw):
 		#~ f.open("L",'a')
 		#~ f.write("A")
@@ -242,14 +281,17 @@ def DoTurn(pw):
 		rapelist=list()
 		for p in superplanets:
 			if(p.Owner()!=1):
-				
 				ll=computeRapeStats(pw,p,superplanets)
-				if len(ll)!=0:
+				if len(ll)!=0 and p.getState(ll[1])[1]!=1:
 					rapelist.append((p,ll))
-		sortedRapeList = sorted(rapelist, key=lambda tup: (tup[1][2]+2*tup[1][1])/(tup[0].GrowthRate()+0.01))
+					
+		#~ sortedRapeList = sorted(rapelist, key=lambda tup: (tup[1][2]+2*tup[1][1]+10*proximity(tup[0],superplanets))/((tup[1][3]+1)*(tup[0].GrowthRate()+0.01)))
+		sortedRapeList = sorted(p, key=lambda tup: (tup.+2*tup[1][1]+10*proximity(tup,superplanets))/(("")*(tup.GrowthRate()+0.01)))
 		i=0
 		for rapes in sortedRapeList:
-			if (i<4):
+			if (i<1):
+				logging.debug(rapes)
+				logging.debug(rapes[0].getTimeline())
 				i+=1
 				fleetOrders=rapes[1][0]
 				for fleets in fleetOrders:
