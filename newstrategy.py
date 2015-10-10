@@ -95,24 +95,37 @@ class SuperPlanet:
       sorted_fleets = sorted(fleetss, key=lambda tup: tup.TurnsRemaining())
       for f in sorted_fleets:
           if(self._planet_id == f.DestinationPlanet()) :
-              if(f.Owner()==self._owner):
-                  self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._owner)
+              if(f.Owner()==self._netOwner):
+                  self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._netOwner)
                   self._netWorth = self._timeline[f.TurnsRemaining()][0]
                   self._captureTurn = f.TurnsRemaining()
                   for i in range(f.TurnsRemaining()+1,101):
-                      tmp = self._timeline[i-1][0] + self._growth_rate
-                      self._timeline[i] = (tmp,self._owner)
+											if(self._netOwner != 0):
+													tmp = self._timeline[i-1][0] + self._growth_rate
+													self._timeline[i] = (tmp,self._netOwner)
+											else:
+													tmp = self._timeline[i-1][0]
+													self._timeline[i] = (tmp,self._netOwner)
               else:
                   if(self._timeline[f.TurnsRemaining()]<f.NumShips()):
                       self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
+                      self._netOwner = f.Owner()
                       for i in range(f.TurnsRemaining()+1,101):
-                          tmp = self._timeline[i-1][0] + self._growth_rate
-                          self._timeline[i] = (tmp,f._owner)
+													if(self._netOwner != 0):
+															tmp = self._timeline[i-1][0] + self._growth_rate
+															self._timeline[i] = (tmp,self._netOwner)
+													else:
+															tmp = self._timeline[i-1][0]
+															self._timeline[i] = (tmp,self._netOwner)
                   else:
-                      self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]-f.NumShips(),self._owner)
+                      self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]-f.NumShips(),self._netOwner)
                       for i in range(f.TurnsRemaining()+1,101):
-                          tmp = self._timeline[i-1][0] + self._growth_rate
-                          self._timeline[i] = (tmp,self._owner)
+													if(self._netOwner != 0):
+															tmp = self._timeline[i-1][0] + self._growth_rate
+															self._timeline[i] = (tmp,self._netOwner)
+													else:
+															tmp = self._timeline[i-1][0]
+															self._timeline[i] = (tmp,self._netOwner)
                   self._netWorth = self._timeline[f.TurnsRemaining()][0]
                   self._captureTurn = f.TurnsRemaining()
 	
@@ -175,7 +188,7 @@ def DoTurn(pw):
   for p in superplanets:
 		if(p.Owner()==1):
 			CList=superConquerWhat(pw,p,superplanets)
-			sorted_by_second = sorted(CList, key=lambda tup: (tup[1]+50*tup[2]) / (tup[3]+0.1))
+			sorted_by_second = sorted(CList, key=lambda tup: (tup[1]+2*tup[2]) / (tup[3]+0.1))
 			count = p.getNet()
 			allowed = p.NumShips()
 			for sd in sorted_by_second:
