@@ -47,7 +47,6 @@ class SuperPlanet:
     self._netOwner=owner
     self._timeline = [(0,0)]*101
     self._timeline[0] = (num_ships,owner)
-    self.invasions=[list()]*101
     for i in range(1,101) :
 				if(owner!=0):
 						st = self._timeline[i-1][0] + growth_rate
@@ -100,12 +99,22 @@ class SuperPlanet:
     return self._y
 
   def updateState(self,pw):
-
+			self._timeline[0] = (self._num_ships,self._owner)
+			for i in range(1,101) :
+					if(self._owner!=0):
+							st = self._timeline[i-1][0] + self._growth_rate
+							self._timeline[i] = (st,self._owner)
+					else:
+							st = self._timeline[i-1][0]
+							self._timeline[i] = (st,self._owner)
+									
 			fleetss = pw.Fleets()
 			sorted_fleets = sorted(fleetss, key=lambda tup: tup.TurnsRemaining())
+      
+      
+      
 			for f in sorted_fleets:
 					if(self._planet_id == f.DestinationPlanet()) :
-							self.invasions[f.TurnsRemaining()].append((f.TurnsRemaining(),f.NumShips(),f.Owner()))
 							if(f.Owner()==self._netOwner):
 									self._timeline[f.TurnsRemaining()] = (self._timeline[f.TurnsRemaining()][0]+f.NumShips(),self._netOwner)
 									self._netWorth = self._timeline[f.TurnsRemaining()][0]
@@ -147,23 +156,25 @@ class SuperPlanet:
 				return i
 		return -1
 		
-  def simulateState(self,myfleets,timeweneed):
-		logging.debug(myfleets)
-		simtime=self._timeline[:]
-		currentowner=self._timeline[0][1]
-		#~ if(currentowner==1):
-			#~ simtime[time]=(simtime[time][0]+num,1)
-		#~ else:
-			#~ if(simtime[time][0]>=num):
-				#~ simtime[time]=(simtime[time][0]-num,currentowner)
-			#~ else:
-				#~ simtime[time]=(-1*simtime[time][0]+num,1)
-				#~ currentowner=1
-		inv=self.invasions[:]
-		for m in myfleets:
-			inv[m[1]].append((m[1],m[0],1))
-		for ii in range(1,timeweneed+1):
-				for f in inv[ii]:
+  def simulateState(self,pw,num,time):
+		currentowner=self._owner
+		simtime = [(0,0)]*101
+		simtime[0] = (self._num_ships,self._owner)
+		for i in range(1,101) :
+				if(self._owner!=0):
+						st = simtime[i-1][0] + self._growth_rate
+						simtime[i] = (st,self._owner)
+				else:
+						st = simtime[i-1][0]
+						simtime[i] = (st,self._owner)
+		fleetss=pw.Fleets()
+		invasions = list()
+		for f in fleetss:
+			if(self._planet_id == f.DestinationPlanet()) :
+				invasions.append((f.TurnsRemaining(),f.NumShips(),f.Owner()))
+		invasions.append((time,num,1))
+		sorted_fleets = sorted(invasions, key=lambda tup: tup[0])
+		for f in sorted_fleets:
 					if(f[2]==currentowner):
 							simtime[f[0]] = (simtime[f[0]][0]+f[1],currentowner)
 							for i in range(f[0]+1,101):
@@ -193,7 +204,6 @@ class SuperPlanet:
 											else:
 													tmp = simtime[i-1][0]
 													simtime[i] = (tmp,currentowner)
-		
 		return simtime
 		
 	
@@ -239,10 +249,6 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 	shipsSent=0
 	captured=False
 	captureTime=0
-	fleetsent=list()
-	for i in range(0,len(planetlist)):
-		fleetsent.append((int(planetlist[i].NumShips()*planetweights[i]),(timetoreach(planetlist[i],Target))))
-	Target.simulateState(fleetsent,turns)
 	for i in range(0,len(planetlist)):
 		shipsSent+=int(planetlist[i].NumShips()*planetweights[i])
 		simstate=planetlist[i].quicksimstate(int(planetlist[i].NumShips()*planetweights[i]),turns)
@@ -308,8 +314,8 @@ def bestStrategy(turns,Target,superplanets):
 			#Maximize the gain - l1norm(planetweights)
 			maxhere=-10000.0
 			tempweights=planetweights[:]
-			for x in range(0,10):
-				tempweights[i]=float(x)/10
+			for x in range(0,30):
+				tempweights[i]=float(x)/30
 				Gain=gainList(sortedplanetlist,tempweights,Target,turns,superplanets)
 				if(Gain>maxhere):
 					maxhere=Gain
@@ -323,7 +329,7 @@ def bestStrategy(turns,Target,superplanets):
 #In 25 turns I want max gain
 #Total Growth rate, number of fleets , proximity of all planets
 #Only decision is to attack a planet or no
-gainTurns=20
+gainTurns=40
 def gainvector(superplanets):
 	mystrategy=list()
 	myplanet=superplanets[0]
