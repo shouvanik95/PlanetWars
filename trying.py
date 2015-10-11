@@ -108,7 +108,7 @@ class SuperPlanet:
 													tmp = self._timeline[i-1][0]
 													self._timeline[i] = (tmp,self._netOwner)
               else:
-                  if(self._timeline[f.TurnsRemaining()]<f.NumShips()):
+                  if(self._timeline[f.TurnsRemaining()][0]<f.NumShips()):
                       self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
                       self._netOwner = f.Owner()
                       for i in range(f.TurnsRemaining()+1,101):
@@ -166,8 +166,13 @@ class SuperPlanet:
 											simtime[i] = (tmp,ownernow)
 			return simtime
 			
-	def getValue(self,time):
-		if(self._timeline
+  def getValue(self,time):
+		if(self._timeline[time][1] == 1):
+			return self._timeline[time][0]
+		elif(self._timeline[time][1] == 0):
+			return 0
+		else:
+			return -1*self._timeline[time][0]
 	  
   def getState(self,time):
 		return self._timeline[time]			  
@@ -185,6 +190,26 @@ def distance(planet1,planet2):
 def timetoreach(planet1,planet2):
 	return int(distance(planet1,planet2))+1
 	
+def val(State):
+	if(State[1]==1):
+		return State[0]
+	elif(State[1]==0):
+		return 0
+	else:
+		return -1*State[0]
+	
+def gain(planet1,planet2,time1,time2):
+	initial = planet1.getValue(time2)+planet2.getValue(time2)
+	final = 50
+	numships = 2 - planet2.getValue(time1)
+	if(numships <= 0):
+		return 0
+	s1=planet1.simulateState(-1*numships,0)
+	s2=planet2.simulateState(numships,timetoreach(planet1,planet2))
+	final = val(s1[time2])+val(s2[time2])
+	return final-initial
+	
+	
 
 def superConquerWhat(pw,source,superplanets):
 	conquerList=list()
@@ -198,7 +223,7 @@ def superConquerWhat(pw,source,superplanets):
 					netWp=2*p.getState(timetoreach)[0]
 				else:
 					netWp=6*p.getState(timetoreach)[0]
-				conquerList.append((p.PlanetID(),netWp,timetoreach,p.GrowthRate()))
+				conquerList.append((p.PlanetID(),netWp,timetoreach,p.GrowthRate(),p))
 	return conquerList
 
 def DoTurn(pw):
@@ -215,7 +240,7 @@ def DoTurn(pw):
 			allowed = p.NumShips()
 			for sd in sorted_by_second:
 				if(sd[1]/2+2>0):
-					if(count > sd[1]/2+2 and allowed > sd[1]/2+2):
+					if(count > sd[1]/2+2 and allowed > sd[1]/2+2 and gain(p,sd[4],timetoreach(p,sd[4]),timetoreach(p,sd[4])+1)>-100):
 						pw.IssueOrder(p.PlanetID(), sd[0],sd[1]/2+2)
 						count = count - sd[1]/2-2
 						allowed = allowed - sd[1]/2-2

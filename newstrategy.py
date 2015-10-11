@@ -107,7 +107,7 @@ class SuperPlanet:
 													tmp = self._timeline[i-1][0]
 													self._timeline[i] = (tmp,self._netOwner)
               else:
-                  if(self._timeline[f.TurnsRemaining()]<f.NumShips()):
+                  if(self._timeline[f.TurnsRemaining()][0]<f.NumShips()):
                       self._timeline[f.TurnsRemaining()] = (f.NumShips()-self._timeline[f.TurnsRemaining()][0],f.Owner())
                       self._netOwner = f.Owner()
                       for i in range(f.TurnsRemaining()+1,101):
@@ -199,7 +199,7 @@ def DoTurn(pw):
   my_planets = pw.MyPlanets()
   for p in superplanets:
 		p.updateState(pw)
-		#s = p.simulateState(10,2)
+		s = p.simulateState(10,2)
   for p in superplanets:
 		if(p.Owner()==1):
 			CList=superConquerWhat(pw,p,superplanets)
