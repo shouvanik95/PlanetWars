@@ -146,7 +146,12 @@ class SuperPlanet:
 			if(self._timeline[i][0]-num<0):
 				return i
 		return -1
-	
+
+  def quicklossstate(self,turns):
+		for i in range(1,turns):
+			if(self._timeline[i][1]==2):
+				return i
+		return -1
 	#If i add num fleets in turn x will I retain the planet
   def quickcheckstate(self,num,x,turns):
 		for i in range(x,turns):
@@ -290,10 +295,13 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 			if(Target.getState(captureTime)[1]==2):
 				gain+=(Target.GrowthRate()*(turns-captureTime))
 	else:
-		qstate=Target.quicksimstate(0,turns)
+		qstate=Target.quicklossstate(turns)
 		ccheck=False
 		for i in range(0,len(planetlist)):
 			shipsSent+=int(planetlist[i].NumShips()*planetweights[i])
+			simstate=planetlist[i].quicksimstate(int(planetlist[i].NumShips()*planetweights[i]),turns)
+			if(simstate!=-1):
+				gain-=2*planetlist[i].GrowthRate()*(turns-simstate)
 			cstate=Target.quickcheckstate(shipsSent,timetoreach(planetlist[i],Target),turns)
 			if(qstate!=-1 and ccheck==False):
 				if(cstate!=-1):
@@ -331,13 +339,13 @@ def bestStrategy(turns,Target,superplanets):
 			#Maximize the gain - l1norm(planetweights)
 			tempweights=planetweights[:]
 			for x in range(0,30):
-				tempweights[i]=float(x)/30
+				tempweights[planetsize-i-1]=float(x)/30
 				Gain=gainList(sortedplanetlist,tempweights,Target,turns,superplanets)
 				if(Gain>maxx):
 					maxx=Gain
 					planetweights=tempweights[:]
 	#~ logging.debug(maxx)
-	logging.debug((maxx,Target.NumShips()))
+	#~ logging.debug((maxx,Target.NumShips()))
 	return (sortedplanetlist,planetweights,maxx)
 				
 	
