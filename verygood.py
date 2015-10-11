@@ -450,7 +450,7 @@ def DoTurn(pw):
 		for gv in gvv:
 			#~ logging.debug(gv)
 			strategylim+=1
-			if(strategylim<50):
+			if(strategylim<3):
 				quitthis=False
 				if(len(gv[0])!=0 and gv[0][2]>0.0):
 					#~ logging.debug("Selected")
