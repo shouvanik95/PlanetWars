@@ -334,16 +334,12 @@ def bestStrategy(turns,Target,superplanets):
 	#We have a gain function gainList
 	#We do a coordinate descent and try to optimize
 	maxx=-10000.0
-	timeoutfactor=200.0
-	#~ logging.debug("X")	
-	iterationlimit=int(timeoutfactor/(planetsize+1))
-	#~ logging.debug(iterationlimit)
 	for j in range(0,1):
 		for i in range(0,planetsize):
 			#Maximize the gain - l1norm(planetweights)
 			tempweights=planetweights[:]
-			for x in range(0,iterationlimit):
-				tempweights[planetsize-i-1]=float(x)/iterationlimit
+			for x in range(0,30):
+				tempweights[planetsize-i-1]=float(x)/30
 				Gain=gainList(sortedplanetlist,tempweights,Target,turns,superplanets)
 				if(Gain>maxx):
 					maxx=Gain
@@ -366,7 +362,7 @@ def gainvector(superplanets,closest3):
 			#If i want to attack this planet in 25 turns get the best strategy
 			strategy=bestStrategy(gainTurns,getthisplanet,superplanets)
 			mystrategy.append((strategy,getthisplanet,h2proximity(strategy,closest3),h3proximity(strategy,closest3)))
-	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]-1*tup[3]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
+	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
 	#~ 
 	#~ myplanetlist=list()
 	#~ logging.debug("Starting I")
@@ -409,7 +405,7 @@ def sendloss1(shipssent,p,closest3):
 	enemyships=0
 	for planet in closest3[p.PlanetID()]:
 		if(planet.Owner()==2):
-			#~ logging.debug((planet.PlanetID(),planet.NumShips()))
+			logging.debug((planet.PlanetID(),planet.NumShips()))
 			enemygrowth+=planet.GrowthRate()
 			enemyships+=planet.NumShips()
 	initialtake=gainTurns
@@ -419,12 +415,12 @@ def sendloss1(shipssent,p,closest3):
 			initialtake=i
 			break
 	finaltake=gainTurns
-	#~ logging.debug(initialtake)
+	logging.debug(initialtake)
 	for i in range(0,gainTurns):
 		if(enemyships+enemygrowth*i>p.NumShips()+p.GrowthRate()*i-shipssent):
 			finaltake=i
 			break
-	#~ logging.debug(finaltake)
+	logging.debug(finaltake)
 	return p.GrowthRate()*(initialtake-finaltake)
 	
 def attackgain(shipssent,p,closest3):
