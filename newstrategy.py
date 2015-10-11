@@ -16,6 +16,7 @@
 
 from PlanetWars import PlanetWars
 import math
+
 def closestConquer(pw,source):
 	not_my_planets = pw.NotMyPlanets()
 	mindist = 100000.0
@@ -164,10 +165,17 @@ class SuperPlanet:
 											tmp = simtime[i-1][0]
 											simtime[i] = (tmp,ownernow)
 			return simtime
+			
+  def getValue(self,time):
+		if(self._timeline[time][1] == 1):
+			return self._timeline[time][0]
+		elif(self._timeline[time][1] == 0):
+			return 0
+		else:
+			return -1*self._timeline[time][0]
 	  
   def getState(self,time):
 		return self._timeline[time]			  
-
 	
 def supercurrentState(pw):
 	planets = pw.Planets()
@@ -176,23 +184,67 @@ def supercurrentState(pw):
 		Superplanets.append(SuperPlanet(p.PlanetID(),p.Owner(),p.NumShips(),p.GrowthRate(),p.X(),p.Y()))
 	return Superplanets
 	
+def distance(planet1,planet2):
+	return math.sqrt((planet1.X()-planet2.X())**2+(planet1.Y()-planet2.Y())**2)
+	
+def timetoreach(planet1,planet2):
+	logging.debug("timetoreach called")
+	return int(distance(planet1,planet2))+1
+	
+def val(State):
+	if(State[1]==1):
+		return State[0]
+	elif(State[1]==0):
+		return 0
+	else:
+		return -1*State[0]
+	
+def gain(planet1,planet2,time1,time2):
+	#logging.debug("Gain called ")
+	initial = planet1.getValue(time2)+planet2.getValue(time2)
+	final = 50
+	numships = 2 - planet2.getValue(time1)
+	if(numships <= 0):
+		return 0
+	s1=planet1.simulateState(-1*numships,0)
+	s2=planet2.simulateState(numships,timetoreach(planet1,planet2))
+	final = val(s1[time2])+val(s2[time2])
+	return final-initial
+	
+def mintimegain(planet1,planet2,time1,LIMIT):
+	logging.debug("mintimegain called")
+	i=timetoreach(planet1,planet2)
+	while i<LIMIT:
+		if (gain(planet1,planet2,time1,i) > 0):
+			return i
+		else:
+			i=i+1
+	return -1
+	
 
 def superConquerWhat(pw,source,superplanets):
+	#logging.debug("super conquer called for planet ")
 	conquerList=list()
 	for p in superplanets:
 		if(p.PlanetID()!=source.PlanetID()):
-			dist=math.sqrt((p.X()-source.X())**2+(p.Y()-source.Y())**2)
-			timetoreach=int(dist)+1
+			#logging.debug("About to call gain for planet " + str(p.PlanetID()))
+			g=gain(source,p,timetoreach(p,source),timetoreach(p,source)+10)
+			#logging.debug("Gain returned " + str(g))
+			t=mintimegain(source,p,timetoreach(p,source),timetoreach(p,source)+10)
 			netWp=0
 			if(p.getOwner()!=source.Owner()):
 				if(p.getOwner()!=0):
-					netWp=2*p.getState(timetoreach)[0]
+					netWp=2*p.getState(timetoreach(p,source))[0]
 				else:
-					netWp=6*p.getState(timetoreach)[0]
-				conquerList.append((p.PlanetID(),netWp,timetoreach,p.GrowthRate()))
+					netWp=6*p.getState(timetoreach(p,source))[0]
+				conquerList.append((p.PlanetID(),netWp,timetoreach(p,source),p.GrowthRate()))
 	return conquerList
 
-
+import sys
+import logging
+with open('stupid.log', 'w'):
+    pass
+logging.basicConfig(filename='stupid.log',level=logging.DEBUG)
 
 def DoTurn(pw):
   superplanets=supercurrentState(pw)

@@ -130,41 +130,56 @@ class SuperPlanet:
                   self._netWorth = self._timeline[f.TurnsRemaining()][0]
                   self._captureTurn = f.TurnsRemaining()
 	
-  def simulateState(self,num,time):
-			simtime = self._timeline[:]
-			growth = self._growth_rate
-			currentval = simtime[time][0]
-			ownernow = self._owner
-			if(ownernow == 1):
-					simtime[time]=(currentval+num,ownernow)
-					for i in range(time+1,101):
-							if(ownernow != 0):
-									tmp = simtime[i-1][0]+growth
-									simtime[i] = (tmp,ownernow)
-							else:
-									tmp = simtime[i-1][0]
-									simtime[i] = (tmp,ownernow)
-			else:
-					if(num > currentval):
-							simtime[time]=(num-currentval,1)
-							ownernow=1
-							for i in range(time+1,101):
-									if(ownernow != 0):
-											tmp = simtime[i-1][0]+growth
-											simtime[i] = (tmp,ownernow)
+  def simulateState(self,pw,num,time):
+		currentowner=self._owner
+		simtime = [(0,0)]*101
+		simtime[0] = (self._num_ships,self._owner)
+		for i in range(1,101) :
+				if(self._owner!=0):
+						st = simtime[i-1][0] + self._growth_rate
+						simtime[i] = (st,self._owner)
+				else:
+						st = simtime[i-1][0]
+						simtime[i] = (st,self._owner)
+		fleetss=pw.Fleets()
+		invasions = list()
+		for f in fleetss:
+			if(self._planet_id == f.DestinationPlanet()) :
+				invasions.append((f.TurnsRemaining(),f.NumShips(),f.Owner()))
+		invasions.append((time,num,1))
+		sorted_fleets = sorted(invasions, key=lambda tup: tup[0])
+		for f in sorted_fleets:
+					if(f[2]==currentowner):
+							simtime[f[0]] = (simtime[f[0]][0]+f[1],currentowner)
+							for i in range(f[0]+1,101):
+									if(currentowner != 0):
+											tmp = simtime[i-1][0] + self._growth_rate
+											simtime[i] = (tmp,currentowner)
 									else:
 											tmp = simtime[i-1][0]
-											simtime[i] = (tmp,ownernow)
+											simtime[i] = (tmp,currentowner)
 					else:
-							simtime[time]=(currentval-num,ownernow)
-							for i in range(time+1,101):
-									if(ownernow != 0):
-											tmp = simtime[i-1][0]+growth
-											simtime[i] = (tmp,ownernow)
-									else:
-											tmp = simtime[i-1][0]
-											simtime[i] = (tmp,ownernow)
-			return simtime
+							if(simtime[f[0]][0]<f[1]):
+									simtime[f[0]] = (f[1]-simtime[f[0]][0],f[2])
+									currentowner = f[2]
+									for i in range(f[0]+1,101):
+											if(currentowner != 0):
+													tmp = simtime[i-1][0] + self._growth_rate
+													simtime[i] = (tmp,currentowner)
+											else:
+													tmp = simtime[i-1][0]
+													simtime[i] = (tmp,currentowner)
+							else:
+									simtime[f[0]] = (simtime[f[0]][0]-f[1],currentowner)
+									for i in range(f[0]+1,101):
+											if(currentowner != 0):
+													tmp = simtime[i-1][0] + self._growth_rate
+													simtime[i] = (tmp,currentowner)
+											else:
+													tmp = simtime[i-1][0]
+													simtime[i] = (tmp,currentowner)
+		return simtime
+		
 			
   def getValue(self,time):
 		if(self._timeline[time][1] == 1):
@@ -198,18 +213,35 @@ def val(State):
 	else:
 		return -1*State[0]
 	
-def gain(planet1,planet2,time1,time2):
+def gain(pw,planet1,planet2,time1,time2):
+	logging.debug(str(planet1.PlanetID())+" "+str(planet2.PlanetID()))
 	initial = planet1.getValue(time2)+planet2.getValue(time2)
+	logging.debug(planet1.getValue(time2))
+	logging.debug(planet2.getValue(time2))
 	final = 50
 	numships = 2 - planet2.getValue(time1)
 	if(numships <= 0):
 		return 0
-	s1=planet1.simulateState(-1*numships,0)
-	s2=planet2.simulateState(numships,timetoreach(planet1,planet2))
+	s1=planet1.simulateState(pw,-1*numships,0)
+	logging.debug(s1)
+	s2=planet2.simulateState(pw,numships,timetoreach(planet1,planet2))
+	logging.debug(s2)
 	final = val(s1[time2])+val(s2[time2])
+	logging.debug(val(s1[time2]))
+	logging.debug(val(s2[time2]))
+	logging.debug(final-initial)
 	return final-initial
 	
-	
+def mintimegain(pw,planet1,planet2,time1,LIMIT):
+	i=timetoreach(planet1,planet2)
+	while i<LIMIT:
+		if (gain(pw,planet1,planet2,time1,i) > 0):
+			return i
+		else:
+			i=i+1
+	return -1
+			
+		
 
 def superConquerWhat(pw,source,superplanets):
 	conquerList=list()
@@ -225,30 +257,43 @@ def superConquerWhat(pw,source,superplanets):
 					netWp=6*p.getState(timetoreach)[0]
 				conquerList.append((p.PlanetID(),netWp,timetoreach,p.GrowthRate(),p))
 	return conquerList
+	
+def newConquerWhat(pw,source,superplanets,HORIZON):
+	conquerList=list()
+	logging.debug("loopy")
+	for p in superplanets:
+		if(p.PlanetID()!=source.PlanetID()):
+			g=gain(pw,source,p,timetoreach(source,p),timetoreach(source,p)+HORIZON)
+			n=2-p.getState(timetoreach(source,p))[0]
+			t=mintimegain(pw,source,p,timetoreach(source,p),timetoreach(source,p)+HORIZON)
+			logging.debug("t is "+str(t))
+			if(n>0 and t!=-1):
+				conquerList.append((p,g,t,n))
+	return conquerList
+	
+import sys
+import logging
+with open('stupid.log', 'w'):
+    pass
+logging.basicConfig(filename='stupid.log',level=logging.DEBUG)
 
 def DoTurn(pw):
   superplanets=supercurrentState(pw)
   my_planets = pw.MyPlanets()
   for p in superplanets:
 		p.updateState(pw)
-		s = p.simulateState(10,2)
   for p in superplanets:
 		if(p.Owner()==1):
-			CList=superConquerWhat(pw,p,superplanets)
-			sorted_by_second = sorted(CList, key=lambda tup: (tup[1]+2*tup[2]) / (tup[3]+0.1))
-			count = p.getNet()
-			allowed = p.NumShips()
+			CList=newConquerWhat(pw,p,superplanets,10)
+			sorted_by_second = sorted(CList, key=lambda tup: (tup[2]-tup[1]))
+			c = p.NumShips()
+			
 			for sd in sorted_by_second:
-				if(sd[1]/2+2>0):
-					if(count > sd[1]/2+2 and allowed > sd[1]/2+2 and gain(p,sd[4],timetoreach(p,sd[4]),timetoreach(p,sd[4])+1)>-100):
-						pw.IssueOrder(p.PlanetID(), sd[0],sd[1]/2+2)
-						count = count - sd[1]/2-2
-						allowed = allowed - sd[1]/2-2
-					else:
-						break
-		
-
-
+				if(sd[3]<c and sd[1]<0):
+					pw.IssueOrder(p.PlanetID(),sd[0].PlanetID(),sd[3])
+					count = count - sd[3]
+				else:
+					break
 
 def main():
   map_data = ''
