@@ -15,9 +15,9 @@
 """
 import sys
 import logging
-with open('example.log', 'w'):
+with open('example2.log', 'w'):
     pass
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
+logging.basicConfig(filename='example2.log',level=logging.DEBUG)
 
 from PlanetWars import PlanetWars
 import math
@@ -261,6 +261,7 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 	gain=0
 	shipsSent=0
 	captured=False
+	ccheck=False
 	captureTime=0
 	hitin3=0
 	fleetsafter3=0
@@ -299,7 +300,6 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 				gain+=(Target.GrowthRate()*(turns-captureTime))
 	else:
 		qstate=Target.quicklossstate(turns)
-		ccheck=False
 		for i in range(0,len(planetlist)):
 			shipsSent+=int(planetlist[i].NumShips()*planetweights[i])
 			simstate=planetlist[i].quicksimstate(int(planetlist[i].NumShips()*planetweights[i]),turns)
@@ -310,8 +310,8 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 				if(cstate!=-1):
 					ccheck=True
 					gain+=2*Target.GrowthRate()*(turns-cstate)
-		if(captured==True):
-			gain+=holdplanetadvantage(Target,superplanets)
+	if(captured==True or ccheck==True):
+		gain+=holdplanetadvantage(Target,superplanets)
 	return gain
 			
 	
@@ -327,14 +327,14 @@ def bestStrategy(turns,Target,superplanets):
 	#Assume each planet contributes equal weights initially
 	sortedplanetlist = sorted(myplanetlist, key=lambda tup: timetoreach(tup,Target))
 	planetsize=len(myplanetlist)
-	planetweights=[0.5]*planetsize
+	planetweights=[0.8]*planetsize
 	#The more weight a planet chooses to give,the worse it is.
 	#But if a planet gives more weight it is possible to capture early on
 	#We need to maximize this tradeoff.
 	#We have a gain function gainList
 	#We do a coordinate descent and try to optimize
 	maxx=-10000.0
-	timeoutfactor=200.0
+	timeoutfactor=100.0
 	iterationlimit=int(timeoutfactor/(planetsize+1))
 	gradientlimit=1
 	for j in range(0,gradientlimit):
@@ -355,8 +355,6 @@ def bestStrategy(turns,Target,superplanets):
 #Only decision is to attack a planet or no
 gainTurns=25
 def gainvector(superplanets,closest3):
-	
-	logging.debug("H!")
 	mystrategy=list()
 	myplanet=superplanets[0]
 	maxx=-10000.0
@@ -366,7 +364,7 @@ def gainvector(superplanets,closest3):
 			strategy=bestStrategy(gainTurns,getthisplanet,superplanets)
 			mystrategy.append((strategy,getthisplanet,h2proximity(strategy,closest3),h3proximity(strategy,closest3),holdplanetadvantage(getthisplanet,superplanets)))
 	#~ sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]-1*tup[3]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
-	sortstrategy = sorted(mystrategy, key=lambda tup: ((-1*tup[0][2]+tup[2]-1*tup[3]-tup[4]-attackpotential(tup[1],closest3,superplanets))-geographicaladvantage(tup[1],superplanets)))
+	sortstrategy = sorted(mystrategy, key=lambda tup: ((-1*tup[0][2]+tup[2]-1*tup[3]-attackpotential(tup[1],closest3,superplanets))))
 	return sortstrategy
 
 
@@ -380,8 +378,8 @@ def turnswecandefend(p,superplanets):
 	myplanetlist=list()
 	myenemylist=list()
 	sortedlist = sorted(superplanets, key=lambda tup: timetoreach(tup,p))
-	maxfriends=3
-	maxenemies=3
+	maxfriends=6
+	maxenemies=6
 	for i in sortedlist:
 		if(i.Owner()==1 and len(myplanetlist)<=maxfriends):
 			myplanetlist.append(i)
@@ -398,22 +396,27 @@ def turnswecandefend(p,superplanets):
 		enemygrowth+=planet.GrowthRate()
 	
 	turns=0
-	if(enemyships>myships):
+	if(enemyships>myships and mydistance>enemydistance):
 		turns = enemydistance/(len(myenemylist)+0.1)
-	if(myships>=enemyships):
+	elif(enemyships>myships):
+		turns =gainTurns
+	elif(myships>=enemyships and mydistance<enemydistance):
 		if(mygrowth>=enemygrowth):
-			turns = 4*gainTurns
+			turns = 2*gainTurns
 		else:
 			turns = enemydistance/(len(myenemylist)+0.1) + (myships-enemyships)/(mygrowth-enemygrowth)
-	
-	return turns
+	if(mydistance<1.5*enemydistance):
+		turns = gainTurns*enemydistance/(mydistance+0.1)
+	return int(turns)
 	
 	
 
 def holdplanetadvantage(p,superplanets):
 	x=turnswecandefend(p,superplanets)
-	if(p.Owner()!=0):
+	if(p.Owner()==1):
 		return x*2*p.GrowthRate()
+	if(p.Owner()==2):
+		return x*1*p.GrowthRate()
 	return x*p.GrowthRate()
 	
 def mydistancesum(p,superplanets):
@@ -434,6 +437,7 @@ def mymindistance(p,superplanets):
 				l22=l2
 	return l2
 
+	
 def attackpotential(p,closest3,superplanets):
 	initialgains=0
 	for planet in closest3[p.PlanetID()]:
@@ -455,7 +459,16 @@ def attackpotential(p,closest3,superplanets):
 			if(g>initialgains):
 				initialgains=g
 	return initialgains
-			
+def getcenter(superplanets):
+	centerx=0
+	centery=0
+	for i in superplanets:
+		centerx+=i.X()			
+		centery+=i.Y()
+	return (float(centerx)/len(superplanets),float(centery)/len(superplanets))	
+def centeradvantage(p,superplanets):
+	(X,Y)=getcenter(superplanets)
+	return (X-p.X())**2+(Y-p.Y())**2+1		
 def geographicaladvantage(planet,superplanets):
 	manhattan=0.0
 	l2=0.0
@@ -479,7 +492,7 @@ def geographicaladvantage(planet,superplanets):
 	avgmanhattan=manhattan/planetcount
 	avgl2=l2/planetcount
 	#~ logging.debug("X1")
-	return (support-opposition)/planetcount
+	return (support-opposition)
 
 def enemydistancesum(p,superplanets):
 	l2=0.0
@@ -599,7 +612,18 @@ def closest3List(superplanets):
 		sortedList=sorted(superplanets,key=lambda tup: distance(planet1,tup))
 		closeList[planet1.PlanetID()]=sortedList[1:4]
 	return closeList
+
+def planettosupport(p,myplanets,superplanets):
+	supportplanets=list()
+	for planet in myplanets:
+		if(enemymindistance(p,superplanets)>enemymindistance(planet,superplanets) and p.PlanetID()!=planet.PlanetID()):
+			supportplanets.append(planet)
 	
+	sortedclose=sorted(supportplanets,key=lambda tup: timetoreach(tup,p))
+	if(len(sortedclose)!=0):
+		return sortedclose[0]
+	return p
+
 def DoTurn(pw):
 		superplanets=supercurrentState(pw)
 		my_planets = list()
@@ -622,15 +646,15 @@ def DoTurn(pw):
 		xxx=[0.0]*len(superplanets)
 		quitthis=False
 		logging.debug("NEWTURN")
-		if(enemy_growthrate>my_growthrate):
-			strategylim=5
-		else:
+		strategylim=3
+		if(enemy_growthrate>my_growthrate or len(my_planets)<4):
 			strategylim=3
+		else:
+			strategylim=1
 		for gv in gvv:
-			strategylim-=1
+			logging.debug((gv,gv[1].PlanetID(),gv[1].NumShips()))
 			if(strategylim>0):
-				
-				logging.debug((gv,gv[1].PlanetID(),gv[1].NumShips()))
+				strategylim-=1
 				quitthis=False
 				if(len(gv[0])!=0 and gv[0][2]-gv[2]>0.0):
 					for i in range(0,len(gv[0][0])):
@@ -646,35 +670,44 @@ def DoTurn(pw):
 							if(c!=0 and c<=gv[0][0][i].NumShips() and xxx[gv[0][0][i].PlanetID()]<=1.0):
 								logging.debug((a,b,c))
 								pw.IssueOrder(a,b,c)
-		if(len(my_planets)>6 and my_growthrate>enemy_growthrate):#~ 
+		if(len(my_planets)>4):#~ 
 			for ii in my_planets:
-				if(int(xxx[ii.PlanetID()]*ii.NumShips())<0.01):
-					bestj=ii
+				dontsend=False
+				for enemy in enemy_planets:
+					for p in closest3[enemy.PlanetID()]:
+						if(p.PlanetID()==ii.PlanetID()):
+							dontsend=True
+				if(int(xxx[ii.PlanetID()]*ii.NumShips())<0.01 and dontsend==False):
+					#~ bestj=ii
+					#~ bestw=0
+					#~ minn=10000
+					#~ maxx=(enemydistancesum(ii,superplanets))+0.01
+					#~ exist=False
+					#~ for j in closest3[ii.PlanetID()]:
+						#~ if(j.Owner()==1):
+							#~ exist=True
+						#~ if(enemydistancesum(j,superplanets)<minn and j.Owner()==1):
+							#~ bestj=j
+							#~ minn=enemydistancesum(j,superplanets)
+					#~ for j in closest3[ii.PlanetID()]:
+						#~ if(enemydistancesum(j,superplanets)>maxx and j.Owner()==1):
+							#~ maxx=enemydistancesum(j,superplanets)
+					#~ logging.debug((bestj.PlanetID(),ii.PlanetID()))
 					bestw=0
-					minn=10000
-					maxx=(enemydistancesum(ii,superplanets))+0.01
+					bestj=planettosupport(ii,my_planets,superplanets)
 					exist=False
-					for j in closest3[ii.PlanetID()]:
-						if(j.Owner()==1):
-							exist=True
-						if(enemydistancesum(j,superplanets)<minn and j.Owner()==1):
-							bestj=j
-							minn=enemydistancesum(j,superplanets)
-					for j in closest3[ii.PlanetID()]:
-						if(enemydistancesum(j,superplanets)>maxx and j.Owner()==1):
-							maxx=enemydistancesum(j,superplanets)
-					logging.debug((bestj.PlanetID(),ii.PlanetID()))
+					if(bestj.PlanetID()!=ii.PlanetID()):
+						exist=True
 					if(exist):
-						for w in range(1,int(15*(enemydistancesum(ii,superplanets))/maxx)):
-							weight=float(w)/20.0
+						for w in range(1,11):
+							weight=float(w)/10.0
 							simstate=ii.quicksimstate(int(ii.NumShips()*weight),gainTurns)
 							if(simstate==-1):
 								bestw=ii.NumShips()*weight
 						if(bestw>0):
-							logging.debug("XXXXXXXX")
 							logging.debug((ii.PlanetID(),bestj.PlanetID(),bestw))
 							pw.IssueOrder(ii.PlanetID(),bestj.PlanetID(),int(bestw))
-
+		
 
 def main():
   map_data = ''

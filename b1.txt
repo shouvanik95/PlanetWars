@@ -1,0 +1,301 @@
+
+1
+76 a.txt
+Player 1 Wins!
+2
+68 a.txt
+Player 1 Wins!
+3
+74 a.txt
+Player 1 Wins!
+4
+73 a.txt
+Player 1 Wins!
+5
+73 a.txt
+Player 1 Wins!
+6
+76 a.txt
+Player 1 Wins!
+7
+67 a.txt
+Player 2 Wins!
+8
+69 a.txt
+Player 1 Wins!
+9
+64 a.txt
+Player 2 Wins!
+10
+80 a.txt
+Player 1 Wins!
+11
+75 a.txt
+Player 1 Wins!
+12
+71 a.txt
+Player 1 Wins!
+13
+77 a.txt
+Player 1 Wins!
+14
+71 a.txt
+Player 1 Wins!
+15
+64 a.txt
+Player 1 Wins!
+16
+60 a.txt
+Player 1 Wins!
+17
+79 a.txt
+Player 1 Wins!
+18
+94 a.txt
+Player 1 Wins!
+19
+94 a.txt
+Player 1 Wins!
+20
+80 a.txt
+Player 1 Wins!
+21
+63 a.txt
+Player 1 Wins!
+22
+50 a.txt
+Player 1 Wins!
+23
+72 a.txt
+Player 1 Wins!
+24
+97 a.txt
+Player 1 Wins!
+25
+89 a.txt
+Player 1 Wins!
+26
+23 a.txt
+Player 2 Wins!
+27
+97 a.txt
+Player 1 Wins!
+28
+104 a.txt
+Player 2 Wins!
+29
+83 a.txt
+Player 1 Wins!
+30
+65 a.txt
+Player 1 Wins!
+31
+82 a.txt
+Player 1 Wins!
+32
+69 a.txt
+Player 1 Wins!
+33
+94 a.txt
+Player 1 Wins!
+34
+85 a.txt
+Player 1 Wins!
+35
+73 a.txt
+Player 1 Wins!
+36
+121 a.txt
+Player 1 Wins!
+37
+68 a.txt
+Player 1 Wins!
+38
+71 a.txt
+Player 1 Wins!
+39
+92 a.txt
+Player 1 Wins!
+40
+69 a.txt
+Player 1 Wins!
+41
+111 a.txt
+Player 1 Wins!
+42
+66 a.txt
+Player 1 Wins!
+43
+68 a.txt
+Player 1 Wins!
+44
+45 a.txt
+Player 2 Wins!
+45
+93 a.txt
+Player 1 Wins!
+46
+69 a.txt
+Player 1 Wins!
+47
+44 a.txt
+Player 2 Wins!
+48
+73 a.txt
+Player 1 Wins!
+49
+70 a.txt
+Player 1 Wins!
+50
+30 a.txt
+Player 1 Wins!
+51
+61 a.txt
+Player 1 Wins!
+52
+111 a.txt
+Player 2 Wins!
+53
+70 a.txt
+Player 1 Wins!
+54
+86 a.txt
+Player 1 Wins!
+55
+90 a.txt
+Player 1 Wins!
+56
+92 a.txt
+Player 1 Wins!
+57
+77 a.txt
+Player 1 Wins!
+58
+94 a.txt
+Player 1 Wins!
+59
+51 a.txt
+Player 1 Wins!
+60
+83 a.txt
+Player 2 Wins!
+61
+54 a.txt
+Player 1 Wins!
+62
+88 a.txt
+Player 1 Wins!
+63
+90 a.txt
+Player 1 Wins!
+64
+63 a.txt
+Player 2 Wins!
+65
+92 a.txt
+Player 1 Wins!
+66
+135 a.txt
+Player 2 Wins!
+67
+84 a.txt
+Player 1 Wins!
+68
+94 a.txt
+Player 1 Wins!
+69
+122 a.txt
+Player 1 Wins!
+70
+83 a.txt
+Player 1 Wins!
+71
+66 a.txt
+Player 1 Wins!
+72
+72 a.txt
+Player 1 Wins!
+73
+76 a.txt
+Player 1 Wins!
+74
+92 a.txt
+Player 1 Wins!
+75
+84 a.txt
+Player 1 Wins!
+76
+86 a.txt
+Player 1 Wins!
+77
+87 a.txt
+Player 2 Wins!
+78
+74 a.txt
+Player 1 Wins!
+79
+1002 a.txt
+Player 1 Wins!
+80
+86 a.txt
+Player 1 Wins!
+81
+92 a.txt
+Player 2 Wins!
+82
+77 a.txt
+Player 1 Wins!
+83
+124 a.txt
+Player 2 Wins!
+84
+76 a.txt
+Player 1 Wins!
+85
+84 a.txt
+Player 1 Wins!
+86
+48 a.txt
+Player 2 Wins!
+87
+63 a.txt
+Player 2 Wins!
+88
+90 a.txt
+Player 2 Wins!
+89
+82 a.txt
+Player 1 Wins!
+90
+135 a.txt
+Player 1 Wins!
+91
+65 a.txt
+Player 1 Wins!
+92
+85 a.txt
+Player 1 Wins!
+93
+77 a.txt
+Player 1 Wins!
+94
+68 a.txt
+Player 1 Wins!
+95
+89 a.txt
+Player 1 Wins!
+96
+80 a.txt
+Player 1 Wins!
+97
+101 a.txt
+Player 1 Wins!
+98
+109 a.txt
+Player 1 Wins!
+99
+61 a.txt
+Player 1 Wins!
+100
+81 a.txt
+Player 2 Wins!

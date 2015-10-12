@@ -312,16 +312,13 @@ def bestStrategy(turns,Target,superplanets):
 	for j in range(0,1):
 		for i in range(0,planetsize):
 			#Maximize the gain - l1norm(planetweights)
-			maxhere=-10000.0
 			tempweights=planetweights[:]
 			for x in range(0,30):
 				tempweights[i]=float(x)/30
 				Gain=gainList(sortedplanetlist,tempweights,Target,turns,superplanets)
-				if(Gain>maxhere):
-					maxhere=Gain
+				if(Gain>maxx):
+					maxx=Gain
 					planetweights=tempweights[:]
-			if(maxx<maxhere):
-				maxx=maxhere	
 	logging.debug(maxx)
 	return (sortedplanetlist,planetweights,maxx)
 				
@@ -432,7 +429,7 @@ def DoTurn(pw):
 		logging.debug("NEWTURN")
 		for gv in gvv:
 			if(len(gv[0])!=0):
-				for i in range(0,len(my_planets)):
+				for i in range(0,len(gv[0][0])):
 					xxx[gv[0][0][i].PlanetID()]+=gv[0][1][i]
 					if(xxx[gv[0][0][i].PlanetID()]>1.0):
 						quitthis=True

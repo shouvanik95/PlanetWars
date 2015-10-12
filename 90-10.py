@@ -358,55 +358,35 @@ def gainvector(superplanets,closest3):
 			strategy=bestStrategy(gainTurns,getthisplanet,superplanets)
 			mystrategy.append((strategy,getthisplanet,h2proximity(strategy,closest3),h3proximity(strategy,closest3)))
 	#~ sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]-1*tup[3]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
-	sortstrategy = sorted(mystrategy, key=lambda tup: ((-1*tup[0][2]+tup[2]-1*tup[3]-attackpotential(tup[1],closest3,superplanets))-geographicaladvantage(tup[1],superplanets))*allproximity(tup[1],superplanets))
+	sortstrategy = sorted(mystrategy, key=lambda tup: ((-1*tup[0][2]+tup[2]-1*tup[3])-geographicaladvantage(tup[1],superplanets))*allproximity(tup[1],superplanets))
 	return sortstrategy
 
-def attackpotential(p,closest3,superplanets):
-	initialgains=0
-	for planet in closest3[p.PlanetID()]:
-		if(planet.Owner()==1):
-			timetobemore=(planet.NumShips()-p.NumShips())/(p.GrowthRate()-planet.GrowthRate()+0.01)
-			if(timetobemore<0):
-				if(p.GrowthRate()<planet.GrowthRate()):
-					timetobemore=10000
-				else:
-					timetobemore=0
-			g=2*(gainTurns-(timetobemore+timetoreach(planet,p)))*planet.GrowthRate()
-			if(g>initialgains):
-				initialgains=g
-		if(planet.Owner()==0):
-			timetobemore=(planet.NumShips()-p.NumShips())/(p.GrowthRate()+0.01)
-			if(timetobemore<0):
-				timetobemore=0
-			g=(gainTurns-(timetobemore+timetoreach(planet,p)))*planet.GrowthRate() - planet.NumShips()
-			if(g>initialgains):
-				initialgains=g
-	return initialgains
-			
+
 def geographicaladvantage(planet,superplanets):
 	manhattan=0.0
 	l2=0.0
 	planetcount=0.1
-	support=0.0
-	opposition=0.0
+	betteraprx=0.0
 	logging.debug("X2")
 	for p in superplanets:
 		planetcount+=1
 		if(p.PlanetID()!=planet.PlanetID()):
+			
 			manhattanloop=abs(p.X()-planet.X())+abs(p.Y()-planet.Y())
 			l2loop=math.sqrt((p.X()-planet.X())**2+(p.Y()-planet.Y())**2)
 			manhattan+=manhattanloop
 			l2+=l2loop
 			logging.debug("X3")
-			if(p.Owner()==1):
-				support+=max(0,float(p.NumShips())-planet.GrowthRate()*l2loop)
-			elif(p.Owner()==2):
-				opposition+=max(0,float(p.NumShips())-planet.GrowthRate()*l2loop)
+			if(p.getState(gainTurns)[1]==1):
+				betteraprx+=p.getState(gainTurns)[0]/l2loop
+			#~ elif(p.getState(gainTurns)[1]==2):
+				#~ betteraprx-=p.getState(gainTurns)[0]/l2loop
 			logging.debug("X4")
 	avgmanhattan=manhattan/planetcount
 	avgl2=l2/planetcount
+	avgbetteraprx=betteraprx/planetcount
 	logging.debug("X1")
-	return (support-opposition)/planetcount
+	return avgbetteraprx
 
 def h1proximity(p,closest3):
 	gains=0.0

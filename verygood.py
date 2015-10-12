@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+#Final Version!! No more edits!
 
 """
 // The DoTurn function is where your code goes. The PlanetWars object contains
@@ -14,10 +14,6 @@
 // http://www.ai-contest.com/resources.
 """
 import sys
-import logging
-with open('example.log', 'w'):
-    pass
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 from PlanetWars import PlanetWars
 import math
@@ -161,7 +157,7 @@ class SuperPlanet:
 		return -1
 		
   def simulateState(self,myfleets,timeweneed):
-		logging.debug(myfleets)
+		#~ logging.debug(myfleets)
 		simtime=self._timeline[:]
 		currentowner=self._timeline[0][1]
 		#~ if(currentowner==1):
@@ -366,7 +362,7 @@ def gainvector(superplanets,closest3):
 			#If i want to attack this planet in 25 turns get the best strategy
 			strategy=bestStrategy(gainTurns,getthisplanet,superplanets)
 			mystrategy.append((strategy,getthisplanet,h2proximity(strategy,closest3),h3proximity(strategy,closest3)))
-	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]-1*tup[3]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate())*allproximity(tup[1],superplanets))
+	sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]+tup[2]-1*tup[3]+friendproximity(tup[1],superplanets)*tup[1].GrowthRate()-enemyproximity(tup[1],superplanets)*tup[1].GrowthRate()))
 	#~ 
 	#~ myplanetlist=list()
 	#~ logging.debug("Starting I")
@@ -392,6 +388,59 @@ def gainvector(superplanets,closest3):
 	#~ logging.debug(mystrategy)
 	#~ sortstrategy = sorted(mystrategy, key=lambda tup: (-1*tup[0][2]-gain2ndturn(tup[1],superplanets,closest3)+allproximity(tup[1],superplanets)/1000))
 	return sortstrategy
+
+
+
+def turnswecandefend(p,superplanets):
+	mygrowth=p.GrowthRate()
+	enemygrowth=0.0
+	myships=0
+	enemyships=0
+	enemydistance=0
+	mydistance=0
+	myplanetlist=list()
+	myenemylist=list()
+	sortedlist = sorted(superplanets, key=lambda tup: timetoreach(tup,p))
+	maxfriends=6
+	maxenemies=6
+	for i in sortedlist:
+		if(i.Owner()==1 and len(myplanetlist)<=maxfriends):
+			myplanetlist.append(i)
+		if(i.Owner()==2 and len(myenemylist)<=maxenemies):
+			myenemylist.append(i)
+			
+	for planet in myplanetlist:
+		mydistance+=timetoreach(p,planet)
+		mygrowth+=planet.GrowthRate()
+		myships+=planet.NumShips()
+	for planet in myenemylist:
+		enemydistance+=timetoreach(p,planet)
+		enemyships+=planet.NumShips()
+		enemygrowth+=planet.GrowthRate()
+	
+	turns=0
+	if(enemyships>myships and mydistance>enemydistance):
+		turns = enemydistance/(len(myenemylist)+0.1)
+	elif(enemyships>myships):
+		turns =gainTurns
+	elif(myships>=enemyships and mydistance<enemydistance):
+		if(mygrowth>=enemygrowth):
+			turns = 2*gainTurns
+		else:
+			turns = enemydistance/(len(myenemylist)+0.1) + (myships-enemyships)/(mygrowth-enemygrowth)
+	if(mydistance<1.5*enemydistance):
+		turns = gainTurns*enemydistance/(mydistance+0.1)
+	return int(turns)
+	
+	
+
+def holdplanetadvantage(p,superplanets):
+	x=turnswecandefend(p,superplanets)
+	if(p.Owner()==1):
+		return x*2*p.GrowthRate()
+	if(p.Owner()==2):
+		return x*1*p.GrowthRate()
+	return x*p.GrowthRate()
 
 def h1proximity(p,closest3):
 	gains=0.0
@@ -560,18 +609,15 @@ def DoTurn(pw):
 		closest3=closest3List(superplanets)
 		for p in superplanets:
 			p.updateState(pw)
-		logging.debug("OLDTURN")
 		gvv=gainvector(superplanets,closest3)
 		xxx=[0.0]*len(superplanets)
 		quitthis=False
-		logging.debug("NEWTURN")
 		strategylim=3
 		if(enemy_growthrate>my_growthrate or len(my_planets)<4):
 			strategylim=3
 		else:
 			strategylim=2
 		for gv in gvv:
-			logging.debug((gv,gv[1].PlanetID(),gv[1].NumShips()))
 			if(strategylim>0):
 				quitthis=False
 				strategylim-=1
@@ -587,9 +633,7 @@ def DoTurn(pw):
 							b=gv[1].PlanetID()
 							c=int(gv[0][0][i].NumShips()*gv[0][1][i])
 							if(c!=0 and c<=gv[0][0][i].NumShips() and xxx[gv[0][0][i].PlanetID()]<=1.0):
-								logging.debug((a,b,c))
 								pw.IssueOrder(a,b,c)
-		logging.debug("XXXX!~EQFWFWF")
 		if(len(my_planets)>4):#~ 
 			for ii in my_planets:
 				dontsend=False
@@ -610,7 +654,6 @@ def DoTurn(pw):
 							if(simstate==-1):
 								bestw=ii.NumShips()*weight
 						if(bestw>0):
-							logging.debug((ii.PlanetID(),bestj.PlanetID(),bestw))
 							pw.IssueOrder(ii.PlanetID(),bestj.PlanetID(),int(bestw))
 
 

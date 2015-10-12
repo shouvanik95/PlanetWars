@@ -1,22 +1,22 @@
 
 1
 102 a.txt
-Player 2 Wins!
+Player 1 Wins!
 2
-79 a.txt
+61 a.txt
 Player 2 Wins!
 3
 102 a.txt
 Player 2 Wins!
 4
-102 a.txt
+92 a.txt
 Player 2 Wins!
 5
 102 a.txt
 Player 2 Wins!
 6
 102 a.txt
-Player 1 Wins!
+Player 2 Wins!
 7
 102 a.txt
 Player 1 Wins!
@@ -28,7 +28,7 @@ Player 2 Wins!
 Player 2 Wins!
 10
 102 a.txt
-Player 1 Wins!
+Player 2 Wins!
 11
 102 a.txt
 Player 2 Wins!
@@ -42,10 +42,10 @@ Player 2 Wins!
 102 a.txt
 Player 1 Wins!
 15
-73 a.txt
-Player 1 Wins!
+56 a.txt
+Player 2 Wins!
 16
-71 a.txt
+83 a.txt
 Player 2 Wins!
 17
 102 a.txt
@@ -58,12 +58,12 @@ Player 1 Wins!
 Player 2 Wins!
 20
 102 a.txt
-Player 1 Wins!
+Player 2 Wins!
 21
 102 a.txt
 Player 2 Wins!
 22
-45 a.txt
+36 a.txt
 Player 2 Wins!
 23
 102 a.txt
@@ -77,20 +77,20 @@ Player 2 Wins!
 26
 102 a.txt
 27
-102 a.txt
+99 a.txt
 Player 2 Wins!
 28
-96 a.txt
+102 a.txt
 Player 2 Wins!
 29
 102 a.txt
 Player 2 Wins!
 30
-85 a.txt
+71 a.txt
 Player 2 Wins!
 31
-60 a.txt
-Player 1 Wins!
+102 a.txt
+Player 2 Wins!
 32
 102 a.txt
 Player 2 Wins!
@@ -107,13 +107,13 @@ Player 2 Wins!
 102 a.txt
 Player 1 Wins!
 37
-93 a.txt
+84 a.txt
 Player 1 Wins!
 38
-67 a.txt
+53 a.txt
 Player 1 Wins!
 39
-59 a.txt
+102 a.txt
 Player 2 Wins!
 40
 102 a.txt
@@ -122,73 +122,73 @@ Player 2 Wins!
 102 a.txt
 Player 1 Wins!
 42
-81 a.txt
+79 a.txt
 Player 1 Wins!
 43
 102 a.txt
-Player 1 Wins!
-44
-45 a.txt
 Player 2 Wins!
+44
+102 a.txt
+Player 1 Wins!
 45
-100 a.txt
+102 a.txt
 Player 2 Wins!
 46
 102 a.txt
 Player 2 Wins!
 47
-39 a.txt
+70 a.txt
 Player 2 Wins!
 48
-102 a.txt
-Player 2 Wins!
+77 a.txt
+Player 1 Wins!
 49
 102 a.txt
 Player 1 Wins!
 50
-53 a.txt
+69 a.txt
 Player 2 Wins!
 51
 95 a.txt
 Player 2 Wins!
 52
-90 a.txt
+91 a.txt
 Player 2 Wins!
 53
 102 a.txt
 Player 2 Wins!
 54
 102 a.txt
-Player 2 Wins!
+Player 1 Wins!
 55
 102 a.txt
 Player 1 Wins!
 56
 102 a.txt
-Player 1 Wins!
+Player 2 Wins!
 57
-80 a.txt
+88 a.txt
 Player 1 Wins!
 58
 102 a.txt
 Player 1 Wins!
 59
 102 a.txt
-Player 2 Wins!
+Player 1 Wins!
 60
-102 a.txt
+94 a.txt
 Player 2 Wins!
 61
-63 a.txt
+68 a.txt
 Player 2 Wins!
 62
-93 a.txt
+102 a.txt
 Player 2 Wins!
 63
 102 a.txt
-Player 1 Wins!
+Player 2 Wins!
 64
-102 a.txt
+87 a.txt
 Player 2 Wins!
 65
 102 a.txt
@@ -200,7 +200,7 @@ Player 2 Wins!
 102 a.txt
 Player 2 Wins!
 68
-42 a.txt
+102 a.txt
 Player 2 Wins!
 69
 102 a.txt
@@ -236,7 +236,7 @@ Player 2 Wins!
 102 a.txt
 Player 2 Wins!
 80
-85 a.txt
+81 a.txt
 Player 2 Wins!
 81
 102 a.txt
@@ -245,10 +245,10 @@ Player 2 Wins!
 102 a.txt
 Player 2 Wins!
 83
-67 a.txt
+54 a.txt
 Player 2 Wins!
 84
-38 a.txt
+37 a.txt
 Player 2 Wins!
 85
 102 a.txt
@@ -257,14 +257,14 @@ Player 2 Wins!
 102 a.txt
 Player 2 Wins!
 87
-82 a.txt
+74 a.txt
 Player 2 Wins!
 88
-102 a.txt
+94 a.txt
 Player 2 Wins!
 89
 102 a.txt
-Player 2 Wins!
+Player 1 Wins!
 90
 102 a.txt
 Player 1 Wins!
@@ -272,7 +272,7 @@ Player 1 Wins!
 102 a.txt
 Player 1 Wins!
 92
-86 a.txt
+102 a.txt
 Player 2 Wins!
 93
 102 a.txt
@@ -294,7 +294,7 @@ Player 2 Wins!
 Player 2 Wins!
 99
 102 a.txt
-Player 2 Wins!
+Player 1 Wins!
 100
 102 a.txt
 Player 2 Wins!
