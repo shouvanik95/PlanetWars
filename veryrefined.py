@@ -268,7 +268,7 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 	if(Target.Owner()!=1):
 		for i in range(0,len(planetlist)):
 			if(Target.getState(turns)[1]==2):
-				if(Target.getState(timetoreach(planetlist[i],Target))[1]==0 and int(planetlist[i].NumShips()*planetweights[i])>0):
+				if(Target.getState(timetoreach(planetlist[i],Target)-1)[1]==0 and int(planetlist[i].NumShips()*planetweights[i])>0):
 					gain-= int(planetlist[i].NumShips()*planetweights[i])
 			shipsSent+=int(planetlist[i].NumShips()*planetweights[i])
 			if(captured==True):
@@ -310,7 +310,8 @@ def gainList(planetlist,planetweights,Target,turns,superplanets):
 				if(cstate!=-1):
 					ccheck=True
 					gain+=2*Target.GrowthRate()*(turns-cstate)
-			
+		if(captured==True):
+			gain+=holdplanetadvantage(Target,superplanets)
 	return gain
 			
 	
@@ -401,7 +402,7 @@ def turnswecandefend(p,superplanets):
 		turns = enemydistance/(len(myenemylist)+0.1)
 	if(myships>=enemyships):
 		if(mygrowth>=enemygrowth):
-			turns = 2*gainTurns
+			turns = 4*gainTurns
 		else:
 			turns = enemydistance/(len(myenemylist)+0.1) + (myships-enemyships)/(mygrowth-enemygrowth)
 	
